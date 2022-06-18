@@ -1,5 +1,6 @@
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
+use std::fs;
 
 pub fn start_server(addr: &str) -> std::io::Result<()> {
     let listener = TcpListener::bind(addr)?;
@@ -16,9 +17,15 @@ fn handle_connection(stream: &mut TcpStream) -> std::io::Result<()> {
 
     stream.read(&mut buffer)?;
 
-    println!("{}", String::from_utf8_lossy(&buffer[..]));
+    let contents = fs::read_to_string("pages/hello.html").unwrap();
 
-    let response = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+        contents.len(),
+        contents
+    );
+
+    println!("{}", response);
 
     stream.write(response.as_bytes())?;
     stream.flush()?;
